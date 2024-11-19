@@ -9,9 +9,14 @@
             "sep": ":"
         },
         "queue_job_options": {
-            "partition": "cpu",
-            "mem": "5000",
-            "cpus-per-task": 5
+            "job-name": "abfe_main",
+            "time": "48:00:00",
+            "nodes": 1,
+            "ntasks-per-node": 1,
+            "cpus-per-task": 1,
+            "partition": "gpu",
+            "gres": "gpu:1",
+            "mem": "10GB"
         }
     },
     "Sub_job": {
@@ -24,9 +29,14 @@
             "sep": ":"
         },
         "queue_job_options": {
-            "partition": "cpu",
-            "mem": "5000",
-            "cpus-per-task": 5
+            "job-name": "abfe_main",
+            "time": "48:00:00",
+            "nodes": 1,
+            "ntasks-per-node": 1,
+            "cpus-per-task": 1,
+            "partition": "gpu",
+            "gres": "gpu:1",
+            "mem": "10GB"
         }
     }
 }

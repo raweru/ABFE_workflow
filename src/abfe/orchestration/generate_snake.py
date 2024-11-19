@@ -78,7 +78,17 @@ def generate_approach_snake_file(out_file_path: str,
 
     full_job = get_superFlow(gmx)
 
-    file_str = "\n".join(["#Load Config:", load_conf_file, full_job])
+    env_clean = (
+        "shell.prefix(\"module purge; "
+        "unset PYTHONPATH; "
+        "unset LD_LIBRARY_PATH; "
+        "export PATH=/ceph/hpc/home/deklevad/miniforge3/envs/abfe/bin:$PATH; "
+        "source /ceph/hpc/home/deklevad/miniforge3/bin/activate abfe; "
+        "\")\n"
+        )
+
+
+    file_str = "\n".join(["#Load Config:", env_clean, load_conf_file, full_job])
 
     out_file_IO = open(out_file_path, "w")
     out_file_IO.write(file_str)
@@ -91,9 +101,18 @@ def generate_snake_file(out_file_path: str,
 
     full_job = get_all_eq_fep_res()
 
-    file_str = "\n".join(["#Load Config:", load_conf_file,
-                          full_job,
-                          ])
+    env_clean = (
+        "shell.prefix(\"module purge; "
+        "unset PYTHONPATH; "
+        "unset LD_LIBRARY_PATH; "
+        "export PATH=/ceph/hpc/home/deklevad/miniforge3/envs/abfe/bin:$PATH; "
+        "source /ceph/hpc/home/deklevad/miniforge3/bin/activate abfe; "
+        "\")\n"
+        )
+
+
+    file_str = "\n".join(["#Load Config:", env_clean, load_conf_file, full_job])
+
 
     out_file_IO = open(out_file_path, "w")
     out_file_IO.write(file_str)

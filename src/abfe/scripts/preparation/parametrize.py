@@ -12,8 +12,15 @@ from openff.toolkit.topology import Molecule
 from openff.toolkit.topology import Topology
 from openff.toolkit.typing.engines.smirnoff import ForceField
 
+# calculate_charge.py
+import warnings
+import sys
 
-def parameterize(input_molecule, output_dir, hmr=False, input_molecule_name="MOL", ff="openff"):
+# Suppress all warnings
+warnings.filterwarnings("ignore")
+
+
+def parameterize(input_molecule, output_dir, hmr=False, input_molecule_name="MOL", ff="gaff"):
     print("------------------------------------------------------")
     print("processing : %s" % input_molecule)
     print("setting HMR to : %s" % hmr)
@@ -31,6 +38,8 @@ def parameterize(input_molecule, output_dir, hmr=False, input_molecule_name="MOL
     # dir_name = os.path.split(dir_name)[-1]
 
     # subprocess.getoutput(f"rm -fr {dir_name}")
+    
+    
     if(ff=="openff"):
         sdf_file_path = (input_molecule)
         molecule: Molecule = Molecule.from_file(sdf_file_path,"sdf")
@@ -57,18 +66,38 @@ def parameterize(input_molecule, output_dir, hmr=False, input_molecule_name="MOL
         system = BSS.IO.readMolecules(input_molecule)
         mol = system.getMolecules()[0]
 
+        def calculate_formal_charge(ligand_sdf):
+            charges = []
+            supplier = Chem.SDMolSupplier(ligand_sdf)
+            
+            for mol in supplier:
+                if mol is not None:  # Check for valid molecule
+                    
+                    if len(supplier) == 1:
+                        print("Only one molecule found in the SDF file.")
+                        charge = Chem.GetFormalCharge(mol)
+                        return charge
+                    else:
+                        charge = Chem.GetFormalCharge(mol)
+                        charges.append(charge)
+            
+            return charges
+
+        charge = calculate_formal_charge(input_molecule)
+
         # Load a molecule from file.
-        process = BSS.Parameters.gaff(mol)
+        process = BSS.Parameters.gaff(molecule=mol, net_charge=charge, charge_method="BCC")
         molecule = process.getMolecule()
 
-        pmd_top_file, pmd_rst_file, pmd_pdb_file, gro_coord_file, gro_top_file = BSS.IO.saveMolecules(dir_name + "/out", molecule,
-                                                                                                      ["prm7", "rst7", "pdb", "Gro87", "GroTop"])
+        pmd_top_file, pmd_rst_file, pmd_pdb_file, gro_coord_file, gro_top_file = BSS.IO.saveMolecules("out", molecule,
+                                                                                                            ["prm7", "rst7", "pdb", "Gro87", "GroTop"])
+
     else:
         raise ValueError("I don't know this FF!")
 
     pmd_top = pmd.load_file(pmd_top_file)
     pmd_pdb = pmd.load_file(gro_coord_file)
-
+    
     for atom in pmd_pdb.atoms:
         atom.residue.name = input_molecule_name
     for atom in pmd_top.atoms:
@@ -89,7 +118,7 @@ def parameterize(input_molecule, output_dir, hmr=False, input_molecule_name="MOL
     pmd_pdb.save(os.path.join(dir_name, "for_amber", "MOL.pdb"), overwrite=True)
 
 
-def gen_ffparams(input_molecule: str, output_dir: str, input_molecule_name: str = "LIG", hmr: bool = False, ff="openff"):
+def gen_ffparams(input_molecule: str, output_dir: str, input_molecule_name: str = "LIG", hmr: bool = False, ff="gaff"):
     if ".sdf" in input_molecule or ".mol2" in input_molecule:
         print(input_molecule, input_molecule_name, hmr)
 

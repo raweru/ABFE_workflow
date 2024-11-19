@@ -60,8 +60,7 @@ class scheduler():
             dependency_value = cluster_config["queue_dependency"]["value"]
             dependency_sep = cluster_config["queue_dependency"]["sep"]
 
-            deps = (f"--{dependency_key}={dependency_value}{dependency_sep}" +
-                    dependency_sep.join([f"${{jobID{i}}}" for i in range(len(self.out_job_path))]))
+            deps = (f"--{dependency_key}={dependency_value}{dependency_sep}" + dependency_sep.join([f"${{jobID{i}}}" for i in range(len(self.out_job_path))]))
 
             file_str.append("\n")
             file_str.append("echo " + ":".join(["${jobID" + str(i) + "}" for i in range(len(self.out_job_path))]))
@@ -117,7 +116,7 @@ class scheduler():
                              "--cluster-status " + status_script_path + " "
                              "--cluster-cancel \""+cluster_config["queue_abort_cmd"]+"\" "
                              "--jobs " + str(num_jobs) + " --latency-wait " + str(latency_wait) + " "
-                             "--rerun-incomplete " + snake_job +" 1>  "+ str(out_prefix)+".out 2>"+ str(out_prefix)+".err"
+                             "--rerun-incomplete " + "--retries " + str(3) + snake_job +" 1>  "+ str(out_prefix)+".out 2>"+ str(out_prefix)+".err"
             ])
         elif (cluster):
             raise ValueError("give cluster conf! ")
@@ -126,7 +125,7 @@ class scheduler():
             file_str = "\n".join([
                 "#!/bin/env bash",
                 "snakemake -c " + str(self.n_cores) + " -j "+str(num_jobs)+" --latency-wait " + str(
-                    latency_wait) + " --rerun-incomplete " + snake_job
+                    latency_wait) + " --rerun-incomplete " + "--retries " + str(3) + snake_job + "--nolock " + "--retries " + str(3)
             ])
 
         file_io = open(self.out_job_path, "w")
